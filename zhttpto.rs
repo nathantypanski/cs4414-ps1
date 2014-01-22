@@ -16,8 +16,9 @@ use std::io::*;
 use std::io::net::ip::{SocketAddr};
 use std::{str};
 
-static IP: &'static str = "127.0.0.1";
-static PORT:        int = 4414;
+static IP: &'static str  = "127.0.0.1";
+static PORT:        int  = 4414;
+static mut visitor_count: uint = 0;
 
 fn main() {
     let addr = from_str::<SocketAddr>(format!("{:s}:{:d}", IP, PORT)).unwrap();
@@ -44,7 +45,9 @@ fn main() {
             stream.read(buf);
             let request_str = str::from_utf8(buf);
             println(format!("Received request :\n{:s}", request_str));
-            
+            unsafe { atomic_add(&mut visitor_count, 1);
+                     println!("Visitor count: {:u}", visitor_count);
+            }
             let response: ~str = 
                 ~"HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n
                  <doctype !html><html><head><title>Hello, Rust!</title>
@@ -54,9 +57,19 @@ fn main() {
                  </style></head>
                  <body>
                  <h1>Greetings, Krusty!</h1>
+                 <h2>Visitor count: " 
+                    + unsafe{
+                        visitor_count.to_str()
+                    } + "</h2>
                  </body></html>\r\n";
             stream.write(response.as_bytes());
             println!("Connection terminates.");
         }
     }
+}
+
+fn atomic_add(var: &mut uint, count: uint) -> uint {
+    let oldval = var.clone();
+    *var = *var + count;
+    return oldval;
 }
