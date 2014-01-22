@@ -23,3 +23,10 @@ User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:24.0) Gecko/20131215 Firefox/24.0
 - `Gecko/20131215`: Gecko rendering engine, from 2013-12-15.
 - `Firefox/24.0`: Build comes from Firefox source code.
 - `Iceweasel/24.2.0`: Iceweasel release (Debian rebranding of Firefox)
+
+2
+=
+
+Rust thinks it is unsafe to modify a global variable like that because it
+is especially dangerous to concurrency; you never know which thread is modifying
+the variable at any given time, so the results are unpredictable.
