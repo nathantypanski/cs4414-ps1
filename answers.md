@@ -16,10 +16,8 @@ User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:24.0) Gecko/20131215 Firefox/24.0
 
   In other words, The browser works with certain standards that Mozilla also
   implements.
-
 - `X11`: The browser is running within the 
   [X Window System](https://en.wikipedia.org/wiki/X_Window_System).
-
 - `Linux x86_64`: 64-bit Linux host
 - `rv:24.0`: Version number of Iceweasel.
 - `Gecko/20131215`: Gecko rendering engine, from 2013-12-15.
