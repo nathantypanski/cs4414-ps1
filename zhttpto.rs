@@ -44,6 +44,8 @@ fn main() {
             let mut buf = [0, ..500];
             stream.read(buf);
             let request_str = str::from_utf8(buf);
+            let lines: ~[&str] = request_str.split('\n').collect(); 
+            println(format!("line one: {:s}", lines[0]));
             println(format!("Received request :\n{:s}", request_str));
             unsafe { atomic_add(&mut visitor_count, 1);
                      println!("Visitor count: {:u}", visitor_count);
