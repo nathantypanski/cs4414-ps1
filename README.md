@@ -20,7 +20,7 @@ This is Problem Set 1 for [Rust Operating Systems Class](http://rust-class.org/p
             > the number of requests, and adds a message to the response that
             > includes a count of the number of requests. You should see the
             > number increase each time your reload the page.
-        - **Problem 4**. 37cf4f6df7cb237efaf57660e7bfbd2189c489d9
+        - **Problem 4**. SHA: 37cf4f6df7cb237efaf57660e7bfbd2189c489d9
 
             > Even with the counter, our web server is not very useful! For the
             > rest of this assignment, your goal is to modify the web server to
@@ -34,7 +34,8 @@ This is Problem Set 1 for [Rust Operating Systems Class](http://rust-class.org/p
 
             > If the incoming request contains an empty path, your server
             > should respond as it did in the previous problem.
-        - **Problem 5**. 901f514e9909b548443a834e9abbee0a2bf54d6e
+        - **Problem 5**. SHA: 901f514e9909b548443a834e9abbee0a2bf54d6e
+
             > Modify the server to only serve files that have .html extensions
             > and that are in the directory where the server is started
             > (including any subirectories of that directory). If a requests
