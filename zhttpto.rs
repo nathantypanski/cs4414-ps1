@@ -34,21 +34,19 @@ fn main() {
             
             match stream {
                 Some(ref mut s) => {
-                             match s.peer_name() {
-                                Some(pn) => {println(format!("Received connection from: [{:s}]", pn.to_str()));},
-                                None => ()
-                             }
-                           },
+                    match s.peer_name() {
+                        Some(pn) => {
+                            println(format!("Received connection from: [{:s}]", pn.to_str()));
+                            },
+                        None => ()
+                    }
+                },
                 None => ()
             }
             let mut buf = [0, ..500];
             stream.read(buf);
             let request_str = str::from_utf8(buf);
-            let lines: ~[&str] = request_str.split('\n').collect(); 
-            let firstline = lines[0];
-            let after=firstline.slice_from(4).to_owned();
-            let then: ~[&str]=after.split(' ').collect();
-            let filename = then[0].slice_from(1);
+            let filename = get_requested_filename(request_str);
             println!("filename: {:s}", filename);
             println!("Received request :\n{:s}", request_str);
             unsafe { atomic_add(&mut visitor_count, 1);
@@ -57,13 +55,7 @@ fn main() {
             let filepath = Path::new(filename);
             match File::open(&filepath) {
                 Some (file) => {
-                    let mut filereader = ~BufferedReader::new(file);
-                    let mut contents : ~str = ~"";
-                    println("Reading file ...");
-                    for line in filereader.lines() {
-                        println!("Found line: {:s}.", line);
-                        contents = contents + "<br />" + line;
-                    }
+                    let contents = get_file_contents(file);
                     let response: ~str = 
                         ~"HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n
                         <doctype !html><html><head><title>Hello, Rust!</title></head>
@@ -75,7 +67,7 @@ fn main() {
                         </body></html>\r\n";
                     stream.write(response.as_bytes());
                     println("Connection terminates.");
-                }
+                },
                 None => {
                     let response: ~str = 
                         ~"HTTP/1.1 404 OK\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n
@@ -88,6 +80,25 @@ fn main() {
             }
         }
     }
+}
+
+fn get_requested_filename(request: &str) -> &str {
+    let lines: ~[&str] = request.split('\n').collect(); 
+    let firstline = lines[0];
+    let after=firstline.slice_from(4).to_owned();
+    let then: ~[&str]=after.split(' ').collect();
+    let filename = then[0].slice_from(1);
+    filename
+}
+
+fn get_file_contents(file: File) -> ~str {
+    let mut filereader = ~BufferedReader::new(file);
+    let mut contents : ~str = ~"";
+    println("Reading file ...");
+    for line in filereader.lines() {
+        contents = contents + "<br />" + line;
+    }
+    contents
 }
 
 fn atomic_add(var: &mut uint, count: uint) -> uint {
