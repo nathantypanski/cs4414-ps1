@@ -70,8 +70,7 @@ h2 { font-size:2cm; text-align: center; color: black; text-shadow: 0 0 4mm green
             else {
                 println!("filename: {:s}", filename);
                 println!("Received request :\n{:s}", request_str);
-                let contents = read_filename(filename);
-                let response = format_response(contents);
+                let response = read_filename(filename);
                 stream.write(response.as_bytes());
             }
             println!("Connection terminates.");
@@ -91,14 +90,19 @@ fn get_requested_filename(request: &str) -> &str {
 
 fn read_filename(filename : &str) -> ~str {
     let mut contents = ~"";
-    let filepath= Path::new(filename.clone());
-    match File::open_mode(&filepath, Open, Read) {
-        Some (file) => {
-            println("File opened for reading ...");
-            contents = get_file_contents(file);
-        },
-        _ => {
-            println!("Error opening file: {:s}", filename);
+    if (filename.slice_from(filename.len() - 5) != ".html") {
+        contents = fmt_bad_response() + "\nWanted: " + filename;
+    }
+    else {
+        let filepath= Path::new(filename.clone());
+        match File::open_mode(&filepath, Open, Read) {
+            Some (file) => {
+                println("File opened for reading ...");
+                contents = fmt_response(get_file_contents(file));
+            },
+            _ => {
+                println!("Error opening file: {:s}", filename);
+            }
         }
     }
     contents
@@ -111,9 +115,15 @@ fn get_file_contents(file: File) -> ~str {
     str::from_utf8(contents).to_owned()
 }
 
-fn format_response(file_contents : &str) -> ~str {
-    let response = ~"HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\n"
+fn fmt_response(file_contents : &str) -> ~str {
+    let response = ~"HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n"
     + file_contents;
+    response
+}
+
+fn fmt_bad_response() -> ~str {
+    let response = ~"HTTP/1.1 403 OK\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\n"
+    + "403 Bad filetype.";
     response
 }
 
