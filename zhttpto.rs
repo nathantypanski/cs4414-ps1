@@ -15,6 +15,7 @@
 use std::io::*;
 use std::io::net::ip::{SocketAddr};
 use std::{str};
+use std::io::buffered::BufferedReader;
 
 static IP: &'static str  = "127.0.0.1";
 static PORT:        int  = 4414;
@@ -40,32 +41,51 @@ fn main() {
                            },
                 None => ()
             }
-            
             let mut buf = [0, ..500];
             stream.read(buf);
             let request_str = str::from_utf8(buf);
             let lines: ~[&str] = request_str.split('\n').collect(); 
-            println(format!("line one: {:s}", lines[0]));
-            println(format!("Received request :\n{:s}", request_str));
+            let firstline = lines[0];
+            let after=firstline.slice_from(4).to_owned();
+            let then: ~[&str]=after.split(' ').collect();
+            let filename = then[0].slice_from(1);
+            println!("filename: {:s}", filename);
+            println!("Received request :\n{:s}", request_str);
             unsafe { atomic_add(&mut visitor_count, 1);
                      println!("Visitor count: {:u}", visitor_count);
             }
-            let response: ~str = 
-                ~"HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n
-                 <doctype !html><html><head><title>Hello, Rust!</title>
-                 <style>body { background-color: #111; color: #FFEEAA }
-                        h1 { font-size:2cm; text-align: center; color: black; text-shadow: 0 0 4mm red}
-                        h2 { font-size:2cm; text-align: center; color: black; text-shadow: 0 0 4mm green}
-                 </style></head>
-                 <body>
-                 <h1>Greetings, Krusty!</h1>
-                 <h2>Visitor count: " 
-                    + unsafe{
-                        visitor_count.to_str()
-                    } + "</h2>
-                 </body></html>\r\n";
-            stream.write(response.as_bytes());
-            println!("Connection terminates.");
+            let filepath = Path::new(filename);
+            match File::open(&filepath) {
+                Some (file) => {
+                    let mut filereader = ~BufferedReader::new(file);
+                    let mut contents : ~str = ~"";
+                    println("Reading file ...");
+                    for line in filereader.lines() {
+                        println!("Found line: {:s}.", line);
+                        contents = contents + "<br />" + line;
+                    }
+                    let response: ~str = 
+                        ~"HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n
+                        <doctype !html><html><head><title>Hello, Rust!</title></head>
+                        <body>"
+                        + contents
+                            + unsafe{
+                                visitor_count.to_str()
+                            } + "</h2>
+                        </body></html>\r\n";
+                    stream.write(response.as_bytes());
+                    println("Connection terminates.");
+                }
+                None => {
+                    let response: ~str = 
+                        ~"HTTP/1.1 404 OK\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n
+                        <doctype !html><html><head><title>Hello, Rust!</title></head>
+                        <body>
+                        </body></html>\r\n";
+                    stream.write(response.as_bytes());
+                    println!("Mad world.");
+                }
+            }
         }
     }
 }
